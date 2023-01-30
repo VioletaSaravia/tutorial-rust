@@ -55,22 +55,79 @@ fn quicksort<T: Ord>(list: &mut [T]) {
 //     a.to_string()
 // }
 
-struct Coordinate(i32, i32);
-
-struct ScreenObject {
-    size: (usize, usize),
-    placement: Coordinate,
-    content: Vec<Vec<char>>,
-    layer: u8,
+#[derive(Debug)]
+enum _Object {
+    _Visible(ScreenObject),
+    _Invisible(_DataObject),
 }
 
-fn build_screenobject(content: Vec<Vec<char>>) -> ScreenObject {
-    ScreenObject {
-        size: (content.len(), content[0].len()),
-        placement: Coordinate(0, 0),
-        content,
-        layer: 0,
+#[derive(Debug)]
+struct Size {
+    _x: usize,
+    _y: usize,
+}
+
+#[derive(Debug)]
+struct Coordinate {
+    _x: i32,
+    _y: i32,
+}
+
+// impl Coordinate {
+//     fn AddAssign<Coordinate>(&self, rhs: Coordinate) {
+//         self._x += rhs._x;
+//     }
+// }
+
+#[derive(Debug)]
+struct _DataObject {
+    _data: String,
+}
+
+#[derive(Debug)]
+struct ScreenObject {
+    _dimentions: Size,
+    _placement: Coordinate,
+    _content: Vec<Vec<char>>,
+    _layer: u8,
+    _shading: Shading,
+    _child: Vec<_Object>,
+}
+
+impl ScreenObject {
+    fn new(_content: Vec<Vec<char>>, _shading: Shading) -> Self {
+        Self {
+            _content,
+            _shading,
+            _dimentions: Size { _x: 1, _y: 2 },
+            _placement: Coordinate { _x: 0, _y: 0 },
+            _layer: 0,
+            _child: vec![],
+        }
     }
+    fn _move_by(&mut self, amount: Coordinate) {
+        self._placement._x += amount._x;
+        self._placement._y += amount._y;
+    }
+
+    fn _move_to(&mut self, amount: Coordinate) {
+        self._placement._x = amount._x;
+        self._placement._y = amount._y;
+    }
+
+    // borrar y hacer custom para board
+    fn _store(self) -> _DataObject {
+        _DataObject {
+            _data: self._content.concat().iter().collect(),
+            // _data: String::from(self._content),
+        }
+    }
+}
+
+#[derive(Debug)]
+enum Shading {
+    Opaque,
+    Transparent,
 }
 
 fn main() {
@@ -92,15 +149,56 @@ fn main() {
     // assert!(mult(&left, &right) == String::from("12"));
     let mut qtest = [2, 3, 17, 9, 1];
     quicksort(&mut qtest);
-    assert!(qtest == [1, 2, 3, 9, 17]);
+    // assert!(qtest == [1, 2, 3, 9, 17]);
 
-    let objcont: Vec<Vec<char>> = [['a']];
-    let _objtest = build_screenobject(objcont);
+    let objcont = vec![vec!['a']];
+    let mut objtest = ScreenObject::new(objcont.clone(), Shading::Opaque);
 
-    let _objtest2 = ScreenObject {
-        layer: 2,
-        .._objtest
+    // se queda con objtest :/
+    // let _objtest2 = ScreenObject {
+    //     _layer: 2,
+    //     _shading: Shading::Transparent,
+    //     ..objtest
+    // };
+
+    let _objtest2 = ScreenObject::new(objcont.clone(), Shading::Transparent);
+
+    objtest._move_to(Coordinate { _x: 2, _y: 4 });
+
+    println!("Object 2 is {:#?}", _objtest2);
+
+    // objtest.layer += 1; // error?
+
+    // Ya existe en STL, ver 6.1
+    enum IpAddr {
+        V4(u8, u8, u8, u8),
+        V6(String),
+    }
+    let _home = IpAddr::V4(127, 0, 0, 1);
+    let _loopback = IpAddr::V6(String::from("::1"));
+
+    let _some_number = Some(5);
+    let _some_char = Some('e');
+
+    let _absent_number: Option<i32> = None;
+
+    let x: i8 = 5;
+    let y: Option<i8> = Some(5);
+
+    let _sum = match y {
+        Some(val) => x + val,
+        None => x,
     };
 
-    // _objtest.layer += 1; // error?
+    let _testest = match objtest {
+        ScreenObject {
+            _shading: Shading::Opaque,
+            ..
+        } => Some(objtest),
+
+        ScreenObject {
+            _shading: Shading::Transparent,
+            ..
+        } => None,
+    };
 }
