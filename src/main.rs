@@ -1,28 +1,46 @@
 use rand::Rng;
 
+pub fn is_palindrome(x: i32) -> bool {
+    let x = x.to_string();
+
+    x.chars()
+        .zip(x.chars().rev())
+        .map(|(begin, end)| begin == end)
+        .all(|x| x)
+}
+
 fn quicksort<T: Ord>(list: &mut [T]) {
-    // match list.len() {
-    //     1 | 0 => return,
-    // }
-    if list.len() == 0 || list.len() == 1 {
-        return;
+    let pivot = match list.len() {
+        2 if &list[0] > &list[1] => {
+            list.swap(0, 1);
+            return;
+        }
+        2 | 1 | 0 => return,
+        len => rand::thread_rng().gen_range(0..len),
+    };
+
+    list.swap(0, pivot);
+
+    let mut i = 1;
+    for j in 1..list.len() {
+        if &list[j] < &list[pivot] {
+            list.swap(j, i);
+            i += 1;
+        }
     }
 
-    let pivot = rand::thread_rng().gen_range(0..list.len());
+    list.swap(i - i, pivot);
 
     {
         let left = &mut list[..pivot];
         quicksort(left);
     }
+
     {
         let right = &mut list[pivot..];
         quicksort(right);
     }
 }
-
-// fn quicksort(list: &mut [i32]) {
-//     let (left, right) = list.split_at(list.len() / 2);
-// }
 
 // fn check_cuil(cuil: &str) -> bool {
 //     assert!(cuil.len() == 11);
@@ -39,20 +57,6 @@ fn quicksort<T: Ord>(list: &mut [T]) {
 //     let codigo = (codigo % 11) as u8;
 
 //     cuil.starts_with("20") && cuil.ends_with(codigo as char)
-// }
-
-// fn mult(lhs: &str, rhs: &str) -> String {
-//     match (lhs, rhs) {
-//         (x:xs, y) => todo!(),
-//     }
-
-//     let (a, b) = lhs.split_at(lhs.len() / 2);
-//     let (c, d) = rhs.split_at(rhs.len() / 2);
-
-//     let ac = mult(a, c);
-//     let bd = mult(b, d);
-
-//     a.to_string()
 // }
 
 #[derive(Debug)]
@@ -147,11 +151,12 @@ fn main() {
     let _left = String::from("3");
     let _right = String::from("4");
     // assert!(mult(&left, &right) == String::from("12"));
-    let mut qtest = [2, 3, 17, 9, 1];
+    let mut qtest = vec![2, 3, 17, 9, 1];
     quicksort(&mut qtest);
     // assert!(qtest == [1, 2, 3, 9, 17]);
 
     let objcont = vec![vec!['a']];
+    let _none_opt = &objcont.get(999);
     let mut objtest = ScreenObject::new(objcont.clone(), Shading::Opaque);
 
     // se queda con objtest :/
@@ -179,13 +184,17 @@ fn main() {
 
     let _some_number = Some(5);
     let _some_char = Some('e');
+    let _some_vec_of_some_char: Option<Vec<Option<char>>> =
+        Some(vec![None, None, Some('a'), None, None, Some('e')]);
 
     let _absent_number: Option<i32> = None;
 
-    let x: i8 = 5;
+    let x: i8 = 7;
     let y: Option<i8> = Some(5);
 
-    let _sum = match y {
+    let _sum_rara = match y {
+        Some(7) => -7,
+        Some(2) | Some(1) => -7,
         Some(val) => x + val,
         None => x,
     };
@@ -201,4 +210,16 @@ fn main() {
             ..
         } => None,
     };
+
+    enum SpreadsheetCell {
+        Int(i32),
+        Float(f64),
+        Text(String),
+    }
+
+    let _row = vec![
+        SpreadsheetCell::Int(3),
+        SpreadsheetCell::Text(String::from("blue")),
+        SpreadsheetCell::Float(10.12),
+    ];
 }
