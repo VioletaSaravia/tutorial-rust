@@ -31,7 +31,8 @@
 					"test",
 					"--no-run",
 					"--bin=rust-tutorial",
-					"--package=rust-tutorial"
+					"--package=rust-tutorial",
+					"-RUST_BACKTRACE=1"
 				],
 				"filter": {
 					"name": "rust-tutorial",
