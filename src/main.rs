@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+use std::cell::RefCell;
 use std::error::Error;
 use std::fmt::{Debug, Display};
 use std::fs::File;
@@ -41,23 +43,29 @@ impl<T> LList<T> {
         self.size += 1;
     }
 
-    pub fn pop(&mut self) {
-        self.root = match self.root.take() {
-            Some(x) => x.next,
-            None => return,
-        };
-        self.size -= 1;
+    pub fn pop(&mut self) -> Result<T, Box<dyn Error>> {
+        match self.root.take() {
+            Some(x) => {
+                let result = x.val;
+                self.root = x.next;
+                self.size -= 1;
+                Ok(result)
+            }
+            None => Err("Lista vacía".into()),
+        }
     }
 }
 
+type Link<T> = Option<Rc<RefCell<DNode<T>>>>;
+
 struct DNode<T> {
     val: T,
-    next: Option<Rc<DNode<T>>>,
-    prev: Option<Rc<DNode<T>>>,
+    next: Link<T>,
+    prev: Link<T>,
 }
 
 impl<T> DNode<T> {
-    fn new_front(val: T, next: Option<Rc<DNode<T>>>) -> DNode<T> {
+    fn new_front(val: T, next: Link<T>) -> DNode<T> {
         DNode {
             val,
             next,
@@ -65,7 +73,7 @@ impl<T> DNode<T> {
         }
     }
 
-    fn new_back(val: T, prev: Option<Rc<DNode<T>>>) -> DNode<T> {
+    fn new_back(val: T, prev: Link<T>) -> DNode<T> {
         DNode {
             val,
             next: None,
@@ -75,8 +83,8 @@ impl<T> DNode<T> {
 }
 
 pub struct DList<T> {
-    root: Option<Rc<DNode<T>>>,
-    end: Option<Rc<DNode<T>>>,
+    root: Link<T>,
+    end: Link<T>,
     size: usize,
 }
 
@@ -90,21 +98,30 @@ impl<T> DList<T> {
     }
 
     pub fn push_front(&mut self, val: T) {
-        let new = Some(Rc::new(DNode::new_front(val, self.root.take())));
-        self.root = new;
-        self.size += 1;
+        {
+            let new: Link<T> = Some(Rc::new(RefCell::new(DNode::new_front(
+                val,
+                self.root.take(),
+            ))));
+            self.root = new;
+            self.size += 1;
+        }
+        // TODO asignar prev a next (y next a prev en push_back())
+        // let asd = &mut self.root.as_mut().unwrap().borrow_mut().next;
+        // let asd = asd.as_mut().unwrap().borrow_mut().prev.as_mut().unwrap();
+        // asd = self.root.borrow();
     }
 
     pub fn pop_front(&mut self) {
         self.root = match self.root.take() {
-            Some(x) => x.next,
+            Some(x) => x.borrow_mut().next.take(),
             None => return,
         };
         self.size -= 1;
     }
 
     pub fn push_back(&mut self, val: T) {
-        let new = Some(Rc::new(DNode::new_back(val, self.end.take())));
+        let new: Link<T> = Some(Rc::new(RefCell::new(DNode::new_back(val, self.end.take()))));
 
         self.end = new;
         self.size += 1;
@@ -112,7 +129,7 @@ impl<T> DList<T> {
 
     pub fn pop_back(&mut self) {
         self.end = match self.end.take() {
-            Some(x) => x.prev,
+            Some(x) => x.borrow_mut().next.take(),
             None => return,
         };
         self.size -= 1;
