@@ -1,12 +1,126 @@
-use rand::Rng;
 use std::error::Error;
 use std::fmt::{Debug, Display};
 use std::fs::File;
 use std::io::{self, Read};
+use std::rc::Rc;
+
+// pub struct BNode {
+//     left: Option<Box<BNode>>,
+//     right: Option<Box<BNode>>,
+//     parent: Box<BNode>,
+// }
+
+struct LNode<T> {
+    val: T,
+    next: Option<Box<LNode<T>>>,
+}
+
+impl<T> LNode<T> {
+    fn new(val: T, next: Option<Box<LNode<T>>>) -> LNode<T> {
+        LNode { val, next }
+    }
+}
+
+pub struct LList<T> {
+    root: Option<Box<LNode<T>>>,
+    size: usize,
+}
+
+impl<T> LList<T> {
+    pub fn new() -> LList<T> {
+        LList {
+            root: None,
+            size: 0,
+        }
+    }
+
+    pub fn push(&mut self, val: T) {
+        let new = Some(Box::new(LNode::new(val, self.root.take())));
+
+        self.root = new;
+        self.size += 1;
+    }
+
+    pub fn pop(&mut self) {
+        self.root = match self.root.take() {
+            Some(x) => x.next,
+            None => return,
+        };
+        self.size -= 1;
+    }
+}
+
+struct DNode<T> {
+    val: T,
+    next: Option<Rc<DNode<T>>>,
+    prev: Option<Rc<DNode<T>>>,
+}
+
+impl<T> DNode<T> {
+    fn new_front(val: T, next: Option<Rc<DNode<T>>>) -> DNode<T> {
+        DNode {
+            val,
+            next,
+            prev: None,
+        }
+    }
+
+    fn new_back(val: T, prev: Option<Rc<DNode<T>>>) -> DNode<T> {
+        DNode {
+            val,
+            next: None,
+            prev,
+        }
+    }
+}
+
+pub struct DList<T> {
+    root: Option<Rc<DNode<T>>>,
+    end: Option<Rc<DNode<T>>>,
+    size: usize,
+}
+
+impl<T> DList<T> {
+    pub fn new() -> DList<T> {
+        DList {
+            root: None,
+            end: None,
+            size: 0,
+        }
+    }
+
+    pub fn push_front(&mut self, val: T) {
+        let new = Some(Rc::new(DNode::new_front(val, self.root.take())));
+        self.root = new;
+        self.size += 1;
+    }
+
+    pub fn pop_front(&mut self) {
+        self.root = match self.root.take() {
+            Some(x) => x.next,
+            None => return,
+        };
+        self.size -= 1;
+    }
+
+    pub fn push_back(&mut self, val: T) {
+        let new = Some(Rc::new(DNode::new_back(val, self.end.take())));
+
+        self.end = new;
+        self.size += 1;
+    }
+
+    pub fn pop_back(&mut self) {
+        self.end = match self.end.take() {
+            Some(x) => x.prev,
+            None => return,
+        };
+        self.size -= 1;
+    }
+}
 
 pub struct Guess {
     value: i32,
-    _test: String,
 }
 
 pub fn shuffle(nums: Vec<i32>, n: i32) -> Vec<i32> {
@@ -124,38 +238,6 @@ pub fn is_palindrome(x: i32) -> bool {
         .all(|x| x)
 }
 
-fn quicksort<T: std::cmp::PartialOrd>(list: &mut [T]) {
-    let pivot = match list.len() {
-        2 if &list[0] > &list[1] => {
-            list.swap(0, 1);
-            return;
-        }
-        2 | 1 | 0 => return,
-        len => rand::thread_rng().gen_range(0..len),
-    };
-
-    list.swap(0, pivot);
-
-    let mut i = 1;
-    for j in 1..list.len() {
-        if &list[j] < &list[pivot] {
-            list.swap(j, i);
-            i += 1;
-        }
-    }
-
-    list.swap(i - i, pivot);
-
-    {
-        let left = &mut list[..pivot];
-        quicksort(left);
-    }
-
-    {
-        let right = &mut list[pivot..];
-        quicksort(right);
-    }
-}
 fn _check_cuil(cuil: &str) -> Result<(), Box<dyn Error>> {
     if cuil.len() != 11 {
         return Err("Cuil debe tener 11 números".into());
@@ -339,31 +421,6 @@ impl<T: Display + PartialOrd> _Pair<T> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // let _x = divide(-2147483648, -1);
-    // let _x = reverse(123);
-
-    // let x = 5;
-
-    // let x = x + 1;
-
-    // {
-    //     let x = x * 2;
-    //     println!("The value of x in the inner scope is: {x}");
-    // }
-
-    // println!("The value of x is: {x}");
-
-    // let _guess: u8 = "42".parse().expect("Not a number!");
-
-    // let _left = String::from("3");
-    // let _right = String::from("4");
-    // // assert!(mult(&left, &right) == String::from("12"));
-    // let mut qtest = vec![2, 3, 17, 9, 1];
-    // quicksort(&mut qtest);
-    // // assert!(qtest == [1, 2, 3, 9, 17]);
-
-    // let objcont = vec![vec!['a']];
-    // let _none_opt = &objcont.get(999);
     // let mut objtest = ScreenObject::new(objcont.clone(), Shading::Opaque);
 
     // // se queda con objtest :/
